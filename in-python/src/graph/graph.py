@@ -24,6 +24,7 @@ class ListGraph:
     def __init__(self, node_relation: []):
         self._node_relation = node_relation
         self._arc = {}
+        self._found = False
 
     def create(self):
         for i in self._node_relation:
@@ -37,6 +38,7 @@ class ListGraph:
             else:
                 self._arc[i[1]] = [i[0]]
 
+    # 广度优先算法
     def bfs(self, source: int, target: int):
         if source == target:
             return
@@ -57,6 +59,28 @@ class ListGraph:
                     visited[i] = True
                     queue.put(i)
         return path
+
+    # 深度优先算法
+    def dfs(self, source: int, target: int):
+        self._found = False
+        visited = {key: False for key in self._arc.keys()}
+        prev = {key: -1 for key in self._arc.keys()}
+        path = []
+        self._dfs_reserve(source, target, visited, prev)
+        self._print(prev, source, target, path)
+        return path
+
+    def _dfs_reserve(self, source: int, target: int, visited: {}, prev: {}):
+        if self._found:
+            return
+        visited[source] = True
+        if source == target:
+            self._found = True
+            return
+        for i in self._arc[source]:
+            if not visited[i]:
+                prev[i] = source
+                self._dfs_reserve(i, target, visited, prev)
 
     def _print(self, prev: {}, source: int, target: int, path: []):
         if prev[target] != -1 and source != target:
@@ -88,5 +112,8 @@ if __name__ == '__main__':
 
     graph = ListGraph(relation)
     graph.create()
-    path = graph.bfs(0, 6)
-    print(path)
+    bfs_path = graph.bfs(0, 6)
+    print(bfs_path)
+
+    dfs_path = graph.dfs(0, 6)
+    print(dfs_path)
