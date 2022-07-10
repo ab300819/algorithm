@@ -14,6 +14,54 @@ class MatrixGraph:
         self._arc = [[None for i in range(self._node_num)] for i in range(self._node_num)]
         for i in self._node_relation:
             self._arc[i[0]][i[1]] = 1
+            self._arc[i[1]][i[0]] = 1
+
+    def bfs(self, source: int, target: int):
+        path = []
+        if source == target:
+            return path
+        visited = {key: False for key in range(self._node_num)}
+        queue = Queue(self._node_num)
+        queue.put(source)
+
+        prev = {key: -1 for key in range(self._node_num)}
+        while not queue.empty():
+            node = queue.get()
+            for j in range(self._node_num):
+                if self._arc[node][j] == 1 and not visited[j]:
+                    prev[j] = node
+                    if j == target:
+                        self._print(prev, source, target, path)
+                        return path
+                    visited[j] = True
+                    queue.put(j)
+        return path
+
+    def dfs(self, source: int, target: int):
+        self._found = False
+        visited = {key: False for key in range(self._node_num)}
+        prev = {key: -1 for key in range(self._node_num)}
+        path = []
+        self._dfs_reserve(source, target, visited, prev)
+        self._print(prev, source, target, path)
+        return path
+
+    def _dfs_reserve(self, source: int, target: int, visited: {}, prev: {}):
+        if self._found:
+            return
+        visited[source] = True
+        if source == target:
+            self._found = True
+            return
+        for i in range(self._node_num):
+            if not visited[i] and self._arc[source][i] == 1:
+                prev[i] = source
+                self._dfs_reserve(i, target, visited, prev)
+
+    def _print(self, prev: {}, source: int, target: int, path: {}):
+        if prev[target] != -1 and source != target:
+            self._print(prev, source, prev[target], path)
+        path.append(target)
 
     def get_graph(self):
         return self._arc
@@ -40,14 +88,14 @@ class ListGraph:
 
     # 广度优先算法
     def bfs(self, source: int, target: int):
+        path = []
         if source == target:
-            return
+            return path
         visited = {key: False for key in self._arc.keys()}
         queue = Queue(len(self._arc))
         queue.put(source)
 
         prev = {key: -1 for key in self._arc.keys()}
-        path = []
         while not queue.empty():
             current = queue.get()
             for i in self._arc[current]:
@@ -92,7 +140,7 @@ class ListGraph:
 
 
 if __name__ == '__main__':
-    node_num = 6
+    node_num = 8
     relation = [
         (0, 1),
         (0, 3),
@@ -104,16 +152,17 @@ if __name__ == '__main__':
         (5, 7),
         (6, 7)
     ]
-    # graph = MatrixGraph(node_num, relation)
-    # graph.create()
-    # node_graph = graph.get_graph()
-    # for i in node_graph:
-    #     print(i)
+    matrix_graph = MatrixGraph(node_num, relation)
+    matrix_graph.create()
+    matrix_bfs_path = matrix_graph.bfs(0, 6)
+    print(matrix_bfs_path)
+    matrix_dfs_path = matrix_graph.dfs(0, 6)
+    print(matrix_dfs_path)
 
-    graph = ListGraph(relation)
-    graph.create()
-    bfs_path = graph.bfs(0, 6)
-    print(bfs_path)
+    list_graph = ListGraph(relation)
+    list_graph.create()
+    list_bfs_path = list_graph.bfs(0, 6)
+    print(list_bfs_path)
 
-    dfs_path = graph.dfs(0, 6)
-    print(dfs_path)
+    list_dfs_path = list_graph.dfs(0, 6)
+    print(list_dfs_path)
