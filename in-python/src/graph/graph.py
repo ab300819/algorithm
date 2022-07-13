@@ -5,63 +5,89 @@ from queue import Queue
 
 # 邻接矩阵表示法
 class MatrixGraph:
-    def __init__(self, node_num: int, node_relation: []):
-        self._arc = []
-        self._node_num = node_num
+    def __init__(self, node_relation: []):
         self._node_relation = node_relation
+        self._arc = []
+        self._node_list = []
+        self._node_map = {}
+        self._found = False
 
     def create(self):
-        self._arc = [[None for i in range(self._node_num)] for i in range(self._node_num)]
+        node_tuple = ()
         for i in self._node_relation:
-            self._arc[i[0]][i[1]] = 1
-            self._arc[i[1]][i[0]] = 1
+            node_tuple = node_tuple + i
+        self._node_list = list(set(node_tuple))
+        self._node_map = {node: index for index, node in enumerate(self._node_list)}
+
+        self._arc = [[None for i in range(len(self._node_list))] for i in range(len(self._node_list))]
+        for i in self._node_relation:
+            node_x = self._node_map[i[0]]
+            node_y = self._node_map[i[1]]
+            self._arc[node_x][node_y] = 1
+            self._arc[node_y][node_x] = 1
 
     def bfs(self, source: int, target: int):
-        path = []
-        if source == target:
-            return path
-        visited = {key: False for key in range(self._node_num)}
-        queue = Queue(self._node_num)
-        queue.put(source)
 
-        prev = {key: -1 for key in range(self._node_num)}
+        source_index = self._node_map[source]
+        target_index = self._node_map[target]
+
+        path = []
+        if source_index == target_index:
+            return path
+        visited = {key: False for key in range(len(self._node_list))}
+        queue = Queue(len(self._node_list))
+        queue.put(source_index)
+
+        prev = {key: -1 for key in range(len(self._node_list))}
         while not queue.empty():
             node = queue.get()
-            for j in range(self._node_num):
+            for j in range(len(self._node_list)):
                 if self._arc[node][j] == 1 and not visited[j]:
                     prev[j] = node
-                    if j == target:
-                        self._print(prev, source, target, path)
+                    if j == target_index:
+                        self._print(prev, source_index, target_index, path)
                         return path
                     visited[j] = True
                     queue.put(j)
-        return path
+        return self._convert_to_node(path)
 
     def dfs(self, source: int, target: int):
-        self._found = False
-        visited = {key: False for key in range(self._node_num)}
-        prev = {key: -1 for key in range(self._node_num)}
-        path = []
-        self._dfs_reserve(source, target, visited, prev)
-        self._print(prev, source, target, path)
-        return path
 
-    def _dfs_reserve(self, source: int, target: int, visited: {}, prev: {}):
+        source_index = self._node_map[source]
+        target_index = self._node_map[target]
+
+        visited = {key: False for key in range(len(self._node_list))}
+        prev = {key: -1 for key in range(len((self._node_list)))}
+        path = []
+        self._dfs_reserve(source_index, target_index, visited, prev)
+        self._print(prev, source_index, target_index, path)
+        return self._convert_to_node(path)
+
+    def _dfs_reserve(self, source_index: int, target_index: int, visited: {}, prev: {}):
         if self._found:
             return
-        visited[source] = True
-        if source == target:
+        visited[source_index] = True
+        if source_index == target_index:
             self._found = True
             return
-        for i in range(self._node_num):
-            if not visited[i] and self._arc[source][i] == 1:
-                prev[i] = source
-                self._dfs_reserve(i, target, visited, prev)
+        for i in range(len(self._node_list)):
+            if not visited[i] and self._arc[source_index][i] == 1:
+                prev[i] = source_index
+                self._dfs_reserve(i, target_index, visited, prev)
 
     def _print(self, prev: {}, source: int, target: int, path: {}):
         if prev[target] != -1 and source != target:
             self._print(prev, source, prev[target], path)
         path.append(target)
+
+    def _convert_to_node(self, path: []):
+        if not path:
+            return path
+
+        result = []
+        for i in path:
+            result.append(self._node_list[i])
+        return result
 
     def get_graph(self):
         return self._arc
@@ -152,7 +178,7 @@ if __name__ == '__main__':
         (5, 7),
         (6, 7)
     ]
-    matrix_graph = MatrixGraph(node_num, relation)
+    matrix_graph = MatrixGraph(relation)
     matrix_graph.create()
     matrix_bfs_path = matrix_graph.bfs(0, 6)
     print(matrix_bfs_path)
